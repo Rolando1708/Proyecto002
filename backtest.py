@@ -7,6 +7,7 @@ from portfolio_value import get_portfolio_value
 def backtest(data, trail) -> float:
     data = data.copy()
 
+    # Hyperparameters
     rsi_window = trail.suggest_int('rsi_window', 5, 50)
     rsi_lower = trail.suggest_int('rsi_lower', 5, 35)
     rsi_upper = trail.suggest_int('rsi_upper', 65, 95)
@@ -14,66 +15,87 @@ def backtest(data, trail) -> float:
     take_profit = trail.suggest_float('take_profit', 0.01, 0.15)
     n_shares = trail.suggest_int('n_shares', 50, 500)
 
+    # RSI
     rsi_indicator = ta.momentum.RSIIndicator(data.Close, window=rsi_window)
     data['RSI'] = rsi_indicator.rsi()
 
+    # Signals
     historic = data.dropna()
-    historic['buy_signal'] = historic.RSI < rsi_lower
-    historic['sell_signal'] = historic.RSI > rsi_upper
+    historic['buy_signal'] = historic.RSI < rsi_lower   # LONG ENTRY
+    historic['sell_signal'] = historic.RSI > rsi_upper  # SHORT ENTRY
 
+    # Trading setup
     COM = 0.125 / 100
     SL = stop_loss
     TP = take_profit
 
     cash = 1_000_000
-
     active_long_positions: list[Operation] = []
+    active_short_positions: list[Operation] = []
 
     portfolio_value = [cash]
 
+    # Loop through each row
     for i, row in historic.iterrows():
 
-        # this only works for long positions...
-    
-        # close positions
+        # --- close long positions ---
         for position in active_long_positions.copy():
-
             if row.Close > position.take_profit or row.Close < position.stop_loss:
                 cash += row.Close * position.n_shares * (1 - COM)
                 active_long_positions.remove(position)
 
-    # check signal
+        # --- close short positions ---
+        for position in active_short_positions.copy():
+            if row.Close < position.take_profit or row.Close > position.stop_loss:
+                # buy back to cover short
+                pnl = (position.price - row.Close) * position.n_shares
+                cash += pnl - (row.Close * position.n_shares * COM)
+                active_short_positions.remove(position)
 
-        if not row.buy_signal:
-            portfolio_value.append(get_portfolio_value(cash, active_long_positions, [], row.Close, n_shares, COM))
-            continue
-    
-        #check if you have enough cash
+        # --- enter LONG if signal and enough cash ---
+        if row.buy_signal:
+            if cash >= row.Close * n_shares * (1 + COM):
+                cash -= row.Close * n_shares * (1 + COM)
+                active_long_positions.append(
+                    Operation(
+                        time=row.Datetime,
+                        price=row.Close,
+                        stop_loss=row.Close * (1 - SL),
+                        take_profit=row.Close * (1 + TP),
+                        n_shares=n_shares,
+                        type="LONG",
+                    )
+                )
 
-        if cash < row.Close * n_shares * (1 + COM):
-            portfolio_value.append(get_portfolio_value(cash, active_long_positions, [], row.Close, n_shares, COM))
-            continue
+        # --- enter SHORT if signal ---
+        if row.sell_signal:
+            # you get cash immediately when shorting
+            cash += row.Close * n_shares * (1 - COM)
+            active_short_positions.append(
+                Operation(
+                    time=row.Datetime,
+                    price=row.Close,
+                    stop_loss=row.Close * (1 + SL), 
+                    take_profit=row.Close * (1 - TP),
+                    n_shares=n_shares,
+                    type="SHORT",
+                )
+            )
 
-        #discount the cost
-
-        cash -= row.Close * n_shares * (1 + COM)
-        # save the operation as active position
-
-        active_long_positions.append(
-            Operation(
-                time=row.Datetime,
-                price=row.Close,
-                stop_loss=row.Close * (1 - SL),
-                take_profit=row.Close * (1 + TP),
-                n_shares=n_shares,
-                type='LONG'
+        # --- update portfolio value ---
+        portfolio_value.append(
+            get_portfolio_value(
+                cash,
+                active_long_positions,
+                active_short_positions,
+                row.Close,
+                n_shares,
+                COM
             )
         )
 
-        portfolio_value.append(get_portfolio_value(cash, active_long_positions, [], row.Close, n_shares, COM))
+    # Final return (after loop)
+    return (portfolio_value[-1] / 1_000_000) - 1
 
-        cash += row.Close * len(active_long_positions) * n_shares * (1 - COM)
-        active_long_positions = []
 
-        return (cash / 1_000_000) - 1 
     
