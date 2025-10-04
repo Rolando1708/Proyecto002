@@ -1,5 +1,3 @@
-import ta
-
 from models import Operation
 from portfolio_value import get_portfolio_value
 
