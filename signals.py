@@ -35,3 +35,41 @@ def bollinger(data: pd.DataFrame, bb_window: int, bb_std: int) -> tuple:
     sell_signal_bb = data.Close > upper_band
 
     return buy_signal_bb, sell_signal_bb
+
+def get_signals(data: pd.DataFrame, params: dict) -> pd.DataFrame:
+    # Individual signals
+    buy_rsi, sell_rsi = rsi(
+        data,
+        params['rsi_window'],
+        params['rsi_lower'],
+        params['rsi_upper']
+    )
+
+    buy_macd, sell_macd = macd(
+        data,
+        params['macd_fast'],
+        params['macd_slow'],
+        params['macd_signal']
+    )
+
+    buy_bb, sell_bb = bollinger(
+        data,
+        params['bb_window'],
+        params['bb_window_dev']
+    )
+
+    # Convert to integers (0/1)
+    buy_rsi = buy_rsi.astype(int)
+    sell_rsi = sell_rsi.astype(int)
+    buy_macd = buy_macd.astype(int)
+    sell_macd = sell_macd.astype(int)
+    buy_bb = buy_bb.astype(int)
+    sell_bb = sell_bb.astype(int)
+
+    # Aggregate (sum across indicators)
+    buy_signals = buy_rsi + buy_macd + buy_bb >= 2
+    sell_signals = sell_rsi + sell_macd + sell_bb >= 2
+
+    data['buy_signal'] = buy_signals
+    data['sell_signal'] = sell_signals
+    return data
