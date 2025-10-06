@@ -1,15 +1,15 @@
 import pandas as pd
 
-def modified_data(data: pd.DataFrame):
+def modified_data(data: str) -> pd.DataFrame:
     data = data.copy()
     data = data.rename(columns={'Date': 'Datetime'})
-    data['Datetime'] = pd.to_datetime(data['Datetime'], errors='coerce', dayfirst= True)
+    data['Datetime'] = pd.to_datetime(data['Datetime'], format="%d/%m/%Y %H:%M:%S", errors='coerce')
     data = data.iloc[::-1].reset_index(drop=True)
 
     return data
 
 
-def dataset_split(data: pd.DataFrame):
+def dataset_split(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     train_size = int(len(data) * 0.6)
     test_size = int(len(data) * 0.2)
     train_data = data[:train_size]

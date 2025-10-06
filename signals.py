@@ -1,6 +1,5 @@
 import pandas as pd
 import ta
-from ta.trend import MACD
 from ta.volatility import BollingerBands
 
 def rsi(data: pd.DataFrame, rsi_window: int, rsi_lower: int, rsi_upper: int) -> tuple:
@@ -12,7 +11,7 @@ def rsi(data: pd.DataFrame, rsi_window: int, rsi_lower: int, rsi_upper: int) -> 
     return buy_signal_rsi, sell_signal_rsi
 
 def macd(data: pd.DataFrame, short_window: int, long_window: int, signal_window: int) -> tuple:
-    macd_indicator = MACD(
+    macd_indicator = ta.trend.MACD(
         close=data.Close,
         window_slow=long_window,
         window_fast=short_window,
@@ -55,21 +54,13 @@ def get_signals(data: pd.DataFrame, params: dict) -> pd.DataFrame:
     buy_bb, sell_bb = bollinger(
         data,
         params['bb_window'],
-        params['bb_window_dev']
+        params['bb_dev']
     )
 
     # Convert to integers (0/1)
-    buy_rsi = buy_rsi.astype(int)
-    sell_rsi = sell_rsi.astype(int)
-    buy_macd = buy_macd.astype(int)
-    sell_macd = sell_macd.astype(int)
-    buy_bb = buy_bb.astype(int)
-    sell_bb = sell_bb.astype(int)
+    buy_signals = buy_rsi.astype(int) + buy_macd.astype(int) + buy_bb.astype(int)
+    sell_signals = sell_rsi.astype(int) + sell_macd.astype(int) + sell_bb.astype(int)
+    data['buy_signal'] = buy_signals >= 2 
+    data['sell_signal'] = sell_signals >= 2 
 
-    # Aggregate (sum across indicators)
-    buy_signals = buy_rsi + buy_macd + buy_bb >= 2
-    sell_signals = sell_rsi + sell_macd + sell_bb >= 2
-
-    data['buy_signal'] = buy_signals
-    data['sell_signal'] = sell_signals
     return data

@@ -27,30 +27,33 @@ def sortino_ratio(port_value: pd.Series) -> float:
     return sortino
 
 def maximum_drawdown(port_value: pd.Series) -> float:
+    # port_value is a pd.Series of portfolio values over time
     peaks = port_value.cummax()
-    dd = (port_value / peaks) - 1
-    maximum_dd = dd.min()
+    dd = (port_value - peaks) / peaks  # negative or zero values
+    maximum_dd = dd.min()  # e.g. -0.25 for a 25% drawdown
     return maximum_dd
-
 
 def calmar_ratio(port_value: pd.Series) -> float:
     returns = port_value.pct_change().dropna()
-    mean_ann = returns.mean() * 365 * 24
-    mdd = maximum_drawdown(port_value)
+    mean_ann = returns.mean() * 24 * 365  # hourly -> annual
+    mdd = maximum_drawdown(port_value)  # negative or zero
 
-    if mdd > 0:
-        calmar = mean_ann / mdd
+    if mdd < 0:
+        calmar = mean_ann / abs(mdd)
     else:
-        calmar = 0
+        calmar = 0.0
     return calmar
 
-def win_rate(port_value: pd.Series) -> float:
-    returns = port_value.pct_change().dropna()
-    total_trades = len(returns)
-    winning_trades = (returns > 0).sum()
 
-    if winning_trades > 0:
-        win_rate_ = winning_trades / total_trades
-    else:
-        win_rate_ = 0
-    return win_rate_
+
+def metrics(port_value: pd.Series) -> pd.DataFrame:
+    metrics_df = pd.DataFrame({
+        'Sharpe Ratio': [sharpe_ratio(port_value)],
+        'Sortino Ratio': [sortino_ratio(port_value)],
+        'Maximum Drawdown': [maximum_drawdown(port_value)],
+        'Calmar Ratio': [calmar_ratio(port_value)],
+    }, index = ["Metrics"])
+    return metrics_df
+
+
+    
