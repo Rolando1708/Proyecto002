@@ -5,7 +5,7 @@ def sharpe_ratio(port_value: pd.Series) -> float:
     returns = port_value.pct_change().dropna()
     mu = returns.mean()
     sigma = returns.std()
-    mu_ann = mu * 365 * 24
+    mu_ann = mu * (365 * 24)
     sigma_ann = sigma * np.sqrt(365 * 24)
     if sigma_ann > 0:
         sharpe = mu_ann / sigma_ann
@@ -16,10 +16,10 @@ def sharpe_ratio(port_value: pd.Series) -> float:
 def sortino_ratio(port_value: pd.Series) -> float:
     returns = port_value.pct_change().dropna()
     mean_ret = returns.mean()
-    downside = returns[returns < 0]
+    downside = np.minimum(returns ,0).std()
 
-    mean_ann = mean_ret * 365 * 24
-    downside_std_ann = downside.std() * np.sqrt(365 * 24)
+    mean_ann = mean_ret * (365 * 24)
+    downside_std_ann = downside * np.sqrt(365 * 24)
     if downside_std_ann > 0:
         sortino = mean_ann / downside_std_ann
     else:
@@ -27,19 +27,18 @@ def sortino_ratio(port_value: pd.Series) -> float:
     return sortino
 
 def maximum_drawdown(port_value: pd.Series) -> float:
-    # port_value is a pd.Series of portfolio values over time
     peaks = port_value.cummax()
-    dd = (port_value - peaks) / peaks  # negative or zero values
-    maximum_dd = dd.min()  # e.g. -0.25 for a 25% drawdown
-    return maximum_dd
+    dd = (port_value - peaks) / peaks 
+    maximum_dd = dd.min() 
+    return abs(maximum_dd)
 
 def calmar_ratio(port_value: pd.Series) -> float:
     returns = port_value.pct_change().dropna()
-    mean_ann = returns.mean() * 24 * 365  # hourly -> annual
-    mdd = maximum_drawdown(port_value)  # negative or zero
+    mean_ann = returns.mean() * (24 * 365)
+    mdd = maximum_drawdown(port_value) 
 
-    if mdd < 0:
-        calmar = mean_ann / abs(mdd)
+    if mdd > 0:
+        calmar = mean_ann / mdd
     else:
         calmar = 0.0
     return calmar

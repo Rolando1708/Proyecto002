@@ -3,7 +3,7 @@ import pandas as pd
 def modified_data(data: str) -> pd.DataFrame:
     data = data.copy()
     data = data.rename(columns={'Date': 'Datetime'})
-    data['Datetime'] = pd.to_datetime(data['Datetime'], format="%d/%m/%Y %H:%M:%S", errors='coerce')
+    data['Datetime'] = pd.to_datetime(data['Datetime'], errors='coerce', dayfirst=True)
     data = data.iloc[::-1].reset_index(drop=True)
 
     return data

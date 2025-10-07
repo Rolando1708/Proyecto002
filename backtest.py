@@ -12,7 +12,7 @@ def backtest(data, cash: float, params: dict) -> tuple[pd.Series, float, float]:
     active_long_positions: list[Operation] = []
     active_short_positions: list[Operation] = []  
 
-    portfolio_value = [cash]
+    portfolio_value = []
     trades = 0
     wins = 0
 

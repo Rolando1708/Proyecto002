@@ -57,7 +57,6 @@ def get_signals(data: pd.DataFrame, params: dict) -> pd.DataFrame:
         params['bb_dev']
     )
 
-    # Convert to integers (0/1)
     buy_signals = buy_rsi.astype(int) + buy_macd.astype(int) + buy_bb.astype(int)
     sell_signals = sell_rsi.astype(int) + sell_macd.astype(int) + sell_bb.astype(int)
     data['buy_signal'] = buy_signals >= 2 

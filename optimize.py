@@ -4,7 +4,6 @@ from metrics import calmar_ratio
 from signals import get_signals
 
 
-# ---------- FIX: optimize function small fixes ----------
 def optimization(trial, train_data) -> float:
     data = train_data.copy()
     rsi_window = trial.suggest_int('rsi_window', 10, 20)
@@ -45,7 +44,7 @@ def optimization(trial, train_data) -> float:
         start_index = i * size
         end_index = (i + 1) * size
         chunk = data.iloc[start_index:end_index, :]
-        port_vals, cash_val, win_rate_ = backtest(chunk, cash=1_000_000, params=params)
+        port_vals, _, _ = backtest(chunk, cash=1_000_000, params=params)
         calmar = calmar_ratio(port_vals)
         calmars.append(calmar)
 

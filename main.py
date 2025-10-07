@@ -6,6 +6,7 @@ from metrics import metrics
 from optimize import optimization
 from plots import plot_portfolio_value, plot_test_validation
 from signals import get_signals
+from tables import returns
 from utils import dataset_split, modified_data
 
 
@@ -16,6 +17,7 @@ def main():
     train_split, test_split, validation_split  = dataset_split(data)
     study = optuna.create_study(direction='maximize')
     study.optimize(lambda trial: optimization(trial, train_split), n_trials = 50)
+
 
     print("\n Best params:")
     print(study.best_params)
@@ -50,6 +52,16 @@ def main():
     print(f"Final Cash: {cash_validation:,.2f}")
     print(f"Win Rate: {win_rate_validation:.2f}%")
     print(metrics(portfolio_value_validation))
+
+    print("-- Test + Validation Results --")
+    
+    portfolio_total, portfolio_through_time = returns(portfolio_value_test, portfolio_value_validation, test_split, validation_split)
+
+    print("Metrics:")
+    print(metrics(portfolio_total))
+
+    print("Returns:")
+    print(portfolio_through_time)
 
     plot_portfolio_value(portfolio_value_train)
     plot_test_validation(portfolio_value_test, portfolio_value_validation)
