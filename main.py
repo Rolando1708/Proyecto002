@@ -12,6 +12,11 @@ from utils import dataset_split, modified_data
 
 
 def main():
+    """
+    Funcion principal que ejecuta el proceso de optimizacion, backtesting y evaluacion de una estrategia de trading.
+    Returns:
+        None: Imprime los resultados de la optimizacion y el backtesting.
+    """
     data = pd.read_csv('Binance_BTCUSDT_1h.csv').dropna()
     data = modified_data(data)
     train_split, test_split, validation_split  = dataset_split(data)

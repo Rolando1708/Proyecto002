@@ -5,6 +5,15 @@ from signals import get_signals
 
 
 def optimization(trial, train_data) -> float:
+    """"
+    Optimización de hiperparámetros para una estrategia de trading utilizando Optuna.
+    Args:
+        trial (optuna.trial.Trial): Objeto de prueba de Optuna para sugerir valores de hiperparámetros.
+        train_data (pd.DataFrame): DataFrame que contiene los datos históricos del activo para el entrenamiento.
+    Returns:
+        float: Valor medio del ratio de Calmar obtenido en la validación cruzada.
+    """
+    
     data = train_data.copy()
     rsi_window = trial.suggest_int('rsi_window', 10, 20)
     rsi_lower = trial.suggest_int('rsi_lower', 20, 35)

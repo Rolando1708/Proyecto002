@@ -2,6 +2,13 @@ import pandas as pd
 import numpy as np
 
 def sharpe_ratio(port_value: pd.Series) -> float:
+    """
+    Calcula el ratio de Sharpe anualizado de una serie temporal de valores de portafolio.
+    Args:
+        port_value (pd.Series): Serie temporal que contiene los valores del portafolio a lo largo del tiempo.
+    Returns:
+        float: El ratio de Sharpe anualizado.
+    """
     returns = port_value.pct_change().dropna()
     mu = returns.mean()
     sigma = returns.std()
@@ -14,6 +21,13 @@ def sharpe_ratio(port_value: pd.Series) -> float:
     return sharpe
 
 def sortino_ratio(port_value: pd.Series) -> float:
+    """
+    Calcula el ratio de Sortino anualizado de una serie temporal de valores de portafolio.
+    Args:
+        port_value (pd.Series): Serie temporal que contiene los valores del portafolio a lo largo del tiempo.
+    Returns:
+        float: El ratio de Sortino anualizado.
+    """
     returns = port_value.pct_change().dropna()
     mean_ret = returns.mean()
     downside = np.minimum(returns ,0).std()
@@ -27,12 +41,26 @@ def sortino_ratio(port_value: pd.Series) -> float:
     return sortino
 
 def maximum_drawdown(port_value: pd.Series) -> float:
+    """
+    Calcula la máxima caída (drawdown) de una serie temporal de valores de portafolio.
+    Args:
+        port_value (pd.Series): Serie temporal que contiene los valores del portafolio a lo largo del tiempo.
+    Returns:
+        float: La máxima caída (drawdown) como un valor absoluto.
+    """
     peaks = port_value.cummax()
     dd = (port_value - peaks) / peaks 
     maximum_dd = dd.min() 
     return abs(maximum_dd)
 
 def calmar_ratio(port_value: pd.Series) -> float:
+    """
+    Calcula el ratio de Calmar anualizado de una serie temporal de valores de portafolio.
+    Args:
+        port_value (pd.Series): Serie temporal que contiene los valores del portafolio a lo largo del tiempo.
+    Returns:
+        float: El ratio de Calmar anualizado.
+    """
     returns = port_value.pct_change().dropna()
     mean_ann = returns.mean() * (24 * 365)
     mdd = maximum_drawdown(port_value) 
@@ -46,6 +74,14 @@ def calmar_ratio(port_value: pd.Series) -> float:
 
 
 def metrics(port_value: pd.Series) -> pd.DataFrame:
+    """
+    Calcula y devuelve un DataFrame con varias métricas financieras clave
+    basadas en una serie temporal de valores de portafolio.
+    Args:
+        port_value (pd.Series): Serie temporal que contiene los valores del portafolio a lo largo del tiempo.
+    Returns:
+        pd.DataFrame: DataFrame que contiene las métricas calculadas.
+    """
     metrics_df = pd.DataFrame({
         'Sharpe Ratio': [sharpe_ratio(port_value)],
         'Sortino Ratio': [sortino_ratio(port_value)],

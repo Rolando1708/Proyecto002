@@ -1,7 +1,3 @@
-from models import Operation
-
-
-
 def get_portfolio_value(cash: float, long_ops: list, short_ops: list, current_price: float,
                         n_shares: float) -> float:
     val = cash

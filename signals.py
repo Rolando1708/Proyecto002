@@ -3,6 +3,16 @@ import ta
 from ta.volatility import BollingerBands
 
 def rsi(data: pd.DataFrame, rsi_window: int, rsi_lower: int, rsi_upper: int) -> tuple:
+    """
+    Calcula las señales de compra y venta basadas en el indicador RSI (Relative Strength Index).
+    Args:
+        data (pd.DataFrame): DataFrame que contiene los datos históricos del activo, incluyendo la columna 'Close'.
+        rsi_window (int): Ventana de tiempo para calcular el RSI.
+        rsi_lower (int): Umbral inferior para generar señales de compra.
+        rsi_upper (int): Umbral superior para generar señales de venta.
+    Returns:
+        tuple: Dos Series booleanas que indican las señales de compra y venta respectivamente.
+    """
     rsi_indicator = ta.momentum.RSIIndicator(data.Close, window=rsi_window)
     rsi_indicator = rsi_indicator.rsi()
     buy_signal_rsi = rsi_indicator < rsi_lower
@@ -11,6 +21,16 @@ def rsi(data: pd.DataFrame, rsi_window: int, rsi_lower: int, rsi_upper: int) -> 
     return buy_signal_rsi, sell_signal_rsi
 
 def macd(data: pd.DataFrame, short_window: int, long_window: int, signal_window: int) -> tuple:
+    """
+    Calcula las señales de compra y venta basadas en el indicador MACD (Moving Average Convergence Divergence).
+    Args:
+        data (pd.DataFrame): DataFrame que contiene los datos históricos del activo, incluyendo la columna 'Close'.
+        short_window (int): Ventana de tiempo para la media móvil rápida.
+        long_window (int): Ventana de tiempo para la media móvil lenta.
+        signal_window (int): Ventana de tiempo para la línea de señal.
+    Returns:
+        tuple: Dos Series booleanas que indican las señales de compra y venta respectivamente.
+    """
     macd_indicator = ta.trend.MACD(
         close=data.Close,
         window_slow=long_window,
@@ -26,6 +46,15 @@ def macd(data: pd.DataFrame, short_window: int, long_window: int, signal_window:
     return buy_signal_macd, sell_signal_macd
 
 def bollinger(data: pd.DataFrame, bb_window: int, bb_std: int) -> tuple:
+    """
+    Calcula las señales de compra y venta basadas en las Bandas de Bollinger.
+    Args:
+        data (pd.DataFrame): DataFrame que contiene los datos históricos del activo, incluyendo la columna 'Close'.
+        bb_window (int): Ventana de tiempo para calcular las Bandas de Bollinger.
+        bb_std (int): Número de desviaciones estándar para calcular las Bandas de Bollinger.
+    Returns:
+        tuple: Dos Series booleanas que indican las señales de compra y venta respectivamente.
+    """
     bb_indicator = BollingerBands(close=data.Close, window=bb_window, window_dev=bb_std)
 
     upper_band = bb_indicator.bollinger_hband()

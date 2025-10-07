@@ -3,6 +3,16 @@ from models import Operation
 from portfolio_value import get_portfolio_value
 
 def backtest(data, cash: float, params: dict) -> tuple[pd.Series, float, float]:
+    """
+    Calcula el total del portafolio a lo largo del tiempo, considerando las operaciones activas y el efectivo disponible.
+    Args:
+        data (pd.DataFrame): DataFrame que contiene los datos históricos del activo, incluyendo señales de compra y venta.
+        cash (float): Monto inicial de efectivo disponible para operar.
+        params (dict): Diccionario que contiene los parámetros necesarios para la simulación, como stop_loss, take_profit y capital_exposure.
+        
+    Returns:
+        tuple[pd.Series, float, float]:
+    """
     data = data.copy()
     COM = 0.00125 
     stop_loss = params['stop_loss']
